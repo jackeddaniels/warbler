@@ -66,11 +66,6 @@ class UserEditForm(FlaskForm):
         validators=[Optional()]
     )
 
-    location = StringField(
-        'Location',
-        validators=[Optional(), Length(max=30)],
-    )
-
 
 class LoginForm(FlaskForm):
     """Login form."""

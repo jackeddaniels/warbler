@@ -157,7 +157,8 @@ def list_users():
     else:
         users = User.query.filter(User.username.like(f"%{search}%")).all()
 
-    return render_template('users/index.html', users=users)
+    form = g.csrf_form
+    return render_template('users/index.html', users=users, form=form)
 
 
 @app.get('/users/<int:user_id>')
@@ -182,8 +183,9 @@ def show_following(user_id):
         flash("Access unauthorized.", "danger")
         return redirect("/")
 
+    form = g.csrf_form
     user = User.query.get_or_404(user_id)
-    return render_template('users/following.html', user=user)
+    return render_template('users/following.html', user=user, form=form)
 
 
 @app.get('/users/<int:user_id>/followers')
@@ -262,8 +264,6 @@ def profile():
                 g.user.image_url = form.image_url.data or User.image_url.default.arg
                 g.user.header_image_url = form.header_image_url.data or User.header_image_url.default.arg
                 g.user.bio = form.bio.data
-                g.user.location = form.location.data
-
 
                 db.session.commit()
                 return redirect(f'/users/{ g.user.id }')
@@ -380,11 +380,23 @@ def homepage():
     """
 
     if g.user:
+        # messages = (Message
+        #             .query
+        #             .order_by(Message.timestamp.desc())
+        #             .limit(100)
+        #             .all())
+
+
+        following = [user.id for user in g.user.following]
+        following.append(g.user.id)
         messages = (Message
-                    .query
-                    .order_by(Message.timestamp.desc())
-                    .limit(100)
-                    .all())
+               .query
+               .filter(Message.user_id.in_(following))
+               .order_by(Message.timestamp.desc())
+               .limit(100)
+               .all()
+               )
+
 
         form = g.csrf_form
 
