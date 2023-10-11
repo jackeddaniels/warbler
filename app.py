@@ -5,7 +5,7 @@ from flask import Flask, render_template, request, flash, redirect, session, g
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 
-from forms import UserAddForm, LoginForm, MessageForm
+from forms import UserAddForm, LoginForm, MessageForm, CSRFForm
 from models import db, connect_db, User, Message
 
 load_dotenv()
@@ -16,7 +16,7 @@ app = Flask(__name__)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
 app.config['SQLALCHEMY_ECHO'] = False
-app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = True
+app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
 app.config['SECRET_KEY'] = os.environ['SECRET_KEY']
 toolbar = DebugToolbarExtension(app)
 
@@ -36,6 +36,13 @@ def add_user_to_g():
 
     else:
         g.user = None
+
+
+@app.before_request
+def add_csrf_form_to_g():
+    """Add CSRF form to the Flask global"""
+
+    g.csrf_form = CSRFForm()
 
 
 def do_login(user):
@@ -114,8 +121,14 @@ def login():
 @app.post('/logout')
 def logout():
     """Handle logout of user and redirect to homepage."""
-
+    # TODO: defined csrf form in g object? create new form?
     form = g.csrf_form
+
+    if form.validate_on_submit():
+        do_logout()
+        return redirect('/')
+
+    # TODO: If not validated, where do we send user
 
     # IMPLEMENT THIS AND FIX BUG
     # DO NOT CHANGE METHOD ON ROUTE
@@ -320,7 +333,9 @@ def homepage():
                     .limit(100)
                     .all())
 
-        return render_template('home.html', messages=messages)
+        form = g.csrf_form
+
+        return render_template('home.html', messages=messages, form=form)
 
     else:
         return render_template('home-anon.html')
