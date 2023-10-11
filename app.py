@@ -238,8 +238,32 @@ def stop_following(follow_id):
 def profile():
     """Update profile for current user."""
 
-    form = UserEditForm()
-    return render_template("/users/edit.html", form=form)
+    form = UserEditForm(obj=g.user)
+
+    # Validate form
+    if form.validate_on_submit():
+        # Check password
+        if User.authenticate(g.user.username, form.password.data):
+            # Try making edits
+            try:
+                g.user.username = form.username.data
+                g.user.email =  form.email.data
+                g.user.image_url = form.image_url.data or User.image_url.default.arg
+
+                db.session.commit()
+                return redirect(f'/users/{ g.user.id }')
+            # Rollback if db doesn't like actions and notify user
+            except IntegrityError:
+                db.session.rollback()
+                flash("Username already taken", 'danger')
+                return render_template('/users/edit.html', form=form)
+            # TODO: Do i change to checking before, or find a way to differentiate duplicate email and username
+        else:
+            flash("Invalid password", "danger")
+            return render_template('/users/edit.html', form=form)
+
+    else:
+        return render_template("/users/edit.html", form=form)
 
 
 @app.post('/users/delete')
