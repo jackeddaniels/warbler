@@ -4,8 +4,9 @@ from dotenv import load_dotenv
 from flask import Flask, render_template, request, flash, redirect, session, g
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
+from werkzeug.exceptions import Unauthorized
 
-from forms import UserAddForm, LoginForm, MessageForm, CSRFForm
+from forms import UserAddForm, LoginForm, MessageForm, CSRFForm, UserEditForm
 from models import db, connect_db, User, Message
 
 load_dotenv()
@@ -121,14 +122,15 @@ def login():
 @app.post('/logout')
 def logout():
     """Handle logout of user and redirect to homepage."""
-    # TODO: defined csrf form in g object? create new form?
+
     form = g.csrf_form
 
     if form.validate_on_submit():
         do_logout()
+        flash("Logout successful", "success")
         return redirect('/')
-
-    # TODO: If not validated, where do we send user
+    else:
+        raise Unauthorized()
 
     # IMPLEMENT THIS AND FIX BUG
     # DO NOT CHANGE METHOD ON ROUTE
@@ -167,8 +169,9 @@ def show_user(user_id):
         return redirect("/")
 
     user = User.query.get_or_404(user_id)
+    form = g.csrf_form
 
-    return render_template('users/show.html', user=user)
+    return render_template('users/show.html', user=user, form=form)
 
 
 @app.get('/users/<int:user_id>/following')
@@ -235,7 +238,8 @@ def stop_following(follow_id):
 def profile():
     """Update profile for current user."""
 
-    # IMPLEMENT THIS
+    form = UserEditForm()
+    return render_template("/users/edit.html", form=form)
 
 
 @app.post('/users/delete')
