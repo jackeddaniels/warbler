@@ -56,6 +56,21 @@ class UserEditForm(FlaskForm):
         validators=[Optional(), URL(), Length(max=255)]
     )
 
+    header_image_url = StringField(
+        '(Optional) Header Image URL',
+        validators=[Optional(), URL(), Length(max=255)]
+    )
+
+    bio = TextAreaField(
+        'Bio',
+        validators=[Optional()]
+    )
+
+    location = StringField(
+        'Location',
+        validators=[Optional(), Length(max=30)],
+    )
+
 
 class LoginForm(FlaskForm):
     """Login form."""

@@ -14,6 +14,11 @@
                  class="card-image">
             <p>@{{ g.user.username }}</p>
           </a>
+          {% if g.user.bio %}
+            <p class="card-bio">{{ g.user.bio }}</p>
+          {% else %}
+            <p class="card-bio">No bio</p>
+          {% endif %}
           <ul class="user-stats nav nav-pills">
             <li class="stat">
               <p class="small">Messages</p>
