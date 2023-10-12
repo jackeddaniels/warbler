@@ -269,6 +269,7 @@ def profile():
     # Validate form
     if form.validate_on_submit():
         # Check password
+
         if User.authenticate(g.user.username, form.password.data):
             # Try making edits
 
@@ -279,7 +280,8 @@ def profile():
                 flash("Username already taken", 'danger')
             if unique_email and (form.email.data != g.user.email):
                 flash("Email already taken", 'danger')
-            if unique_username or unique_email:
+            if ((unique_username and (form.username.data != g.user.username))
+                or (unique_email and (form.email.data != g.user.email))):
                 return render_template('/users/edit.html', form=form)
 
             g.user.username = form.username.data
@@ -289,6 +291,7 @@ def profile():
             g.user.bio = form.bio.data
 
             db.session.commit()
+
             return redirect(f'/users/{ g.user.id }')
 
         else:

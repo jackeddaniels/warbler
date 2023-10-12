@@ -1,0 +1,3 @@
+Fix delete user / Make sure user that has posts can be deleted
+More testing around edit
+Another look on csrf_form usage

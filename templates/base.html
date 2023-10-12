@@ -33,6 +33,7 @@
       {% block searchbox %}
         <li>
           <form class="navbar-form navbar-end" action="/users">
+            {{ g.csrf_form.hidden_tag() }}
             <input
                 name="q"
                 class="form-control"
