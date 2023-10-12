@@ -135,12 +135,12 @@ def logout():
 
     form = g.csrf_form
 
-    if form.validate_on_submit():
-        do_logout()
-        flash("Logout successful", "success")
-        return redirect('/')
-    else:
+    if not form.validate_on_submit():
         raise Unauthorized()
+
+    do_logout()
+    flash("Logout successful", "success")
+    return redirect('/')
 
     # IMPLEMENT THIS AND FIX BUG
     # DO NOT CHANGE METHOD ON ROUTE
@@ -258,6 +258,7 @@ def stop_following(follow_id):
 
 @app.route('/users/profile', methods=["GET", "POST"])
 def profile():
+    # TODO: add more detail, add redirects
     """Update profile for current user."""
 
     if not g.user:
@@ -272,16 +273,17 @@ def profile():
 
         if User.authenticate(g.user.username, form.password.data):
             # Try making edits
-
+            #TODO: Better name for unique_username and unqiue_email user_with_username/user_with_email
             unique_username = User.query.filter_by(username=form.username.data).one_or_none()
             unique_email = User.query.filter_by(email=form.email.data).one_or_none()
+            username_taken = unique_username and (form.username.data != g.user.username)
+            email_taken = unique_email and (form.email.data != g.user.email)
 
-            if unique_username and (form.username.data != g.user.username):
+            if username_taken:
                 flash("Username already taken", 'danger')
-            if unique_email and (form.email.data != g.user.email):
+            if email_taken:
                 flash("Email already taken", 'danger')
-            if ((unique_username and (form.username.data != g.user.username))
-                or (unique_email and (form.email.data != g.user.email))):
+            if username_taken or email_taken:
                 return render_template('/users/edit.html', form=form)
 
             g.user.username = form.username.data
@@ -318,6 +320,9 @@ def delete_user():
     if form.validate_on_submit():
         do_logout()
 
+        Message.query.filter_by(user_id=g.user.id).delete()
+        # messages = g.user.messages
+        # db.session.delete(messages)
         db.session.delete(g.user)
         db.session.commit()
         return redirect("/signup")
@@ -401,6 +406,7 @@ def homepage():
     """
 
     if g.user:
+        # TODO: following_id
         following = [user.id for user in g.user.following]
         following.append(g.user.id)
         messages = (Message
