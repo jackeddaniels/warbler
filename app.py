@@ -391,6 +391,22 @@ def delete_message(message_id):
     else:
         raise Unauthorized()
 
+##############################################################################
+# Likes
+
+
+@app.get('/users/<int:user_id>/likes')
+def show_liked_messages(user_id):
+    """Show a page of user's liked messages."""
+
+    if not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
+
+    user = User.query.get_or_404(user_id)
+
+    return render_template('/users/likes.html', user=user)
+
 
 @app.post('/messages/<int:message_id>/like')
 def like_message(message_id):
@@ -432,6 +448,7 @@ def unlike_message(message_id):
     db.session.commit()
 
     return redirect(f'/messages/{message_id}')
+
 
 ##############################################################################
 # Homepage and error pages

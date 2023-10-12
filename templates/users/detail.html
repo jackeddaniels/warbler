@@ -43,7 +43,11 @@
           </li>
           <li class="stat">
             <p class="small">Likes</p>
-            <h4>{{ g.user.liked_messages | length }}</h4>
+            <h4>
+              <a href="/users/{{ user.id }}/likes">
+              {{ g.user.liked_messages | length }}
+              </a>
+            </h4>
           </li>
 
           <li class="ms-auto">
