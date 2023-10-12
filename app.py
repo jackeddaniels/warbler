@@ -7,7 +7,7 @@ from sqlalchemy.exc import IntegrityError
 from werkzeug.exceptions import Unauthorized
 
 from forms import UserAddForm, LoginForm, MessageForm, CSRFForm, UserEditForm
-from models import db, connect_db, User, Message
+from models import db, connect_db, User, Message, Like
 
 load_dotenv()
 
@@ -391,6 +391,47 @@ def delete_message(message_id):
     else:
         raise Unauthorized()
 
+
+@app.post('/messages/<int:message_id>/like')
+def like_message(message_id):
+    """Like a message. Redirect to message on success"""
+
+    if not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
+
+    form = g.csrf_form
+
+    if not form.validate_on_submit():
+        raise Unauthorized()
+
+    message = Message.query.get_or_404(message_id)
+
+    g.user.liked_messages.append(message)
+    db.session.commit()
+
+    return redirect(f'/messages/{message_id}')
+
+
+@app.post('/messages/<int:message_id>/unlike')
+def unlike_message(message_id):
+    """Like a message. Redirect to message on success"""
+
+    if not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
+
+    form = g.csrf_form
+
+    if not form.validate_on_submit():
+        raise Unauthorized()
+
+    message = Message.query.get_or_404(message_id)
+
+    g.user.liked_messages.remove(message)
+    db.session.commit()
+
+    return redirect(f'/messages/{message_id}')
 
 ##############################################################################
 # Homepage and error pages
