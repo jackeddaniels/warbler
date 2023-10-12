@@ -1,12 +1,9 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<!-- Use background for div -->
 <div id="warbler-hero"
+    style="background-image: url('{{ user.header_image_url }}')"
      class="full-width">
-     <img src="{{ user.header_image_url }}"
-     alt="Image for {{ user.username }} header"
-     id="profile-header">
 </div>
 <img src="{{ user.image_url }}"
      alt="Image for {{ user.username }}"

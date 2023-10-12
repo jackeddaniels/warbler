@@ -258,8 +258,9 @@ def stop_following(follow_id):
 
 @app.route('/users/profile', methods=["GET", "POST"])
 def profile():
-    # TODO: add more detail, add redirects
-    """Update profile for current user."""
+    """Update profile for current user.
+        If valid, redirect current user's profile, otherwise re-render form.
+    """
 
     if not g.user:
         flash("Access unauthorized.", "danger")
@@ -272,12 +273,10 @@ def profile():
         # Check password
 
         if User.authenticate(g.user.username, form.password.data):
-            # Try making edits
-            #TODO: Better name for unique_username and unqiue_email user_with_username/user_with_email
-            unique_username = User.query.filter_by(username=form.username.data).one_or_none()
-            unique_email = User.query.filter_by(email=form.email.data).one_or_none()
-            username_taken = unique_username and (form.username.data != g.user.username)
-            email_taken = unique_email and (form.email.data != g.user.email)
+            user_with_username = User.query.filter_by(username=form.username.data).one_or_none()
+            user_with_email = User.query.filter_by(email=form.email.data).one_or_none()
+            username_taken = user_with_username and (form.username.data != g.user.username)
+            email_taken = user_with_email and (form.email.data != g.user.email)
 
             if username_taken:
                 flash("Username already taken", 'danger')
@@ -406,12 +405,11 @@ def homepage():
     """
 
     if g.user:
-        # TODO: following_id
-        following = [user.id for user in g.user.following]
-        following.append(g.user.id)
+        following_id = [user.id for user in g.user.following]
+        following_id.append(g.user.id)
         messages = (Message
                .query
-               .filter(Message.user_id.in_(following))
+               .filter(Message.user_id.in_(following_id))
                .order_by(Message.timestamp.desc())
                .limit(100)
                .all()

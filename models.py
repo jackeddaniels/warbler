@@ -182,6 +182,30 @@ class Message(db.Model):
         nullable=False,
     )
 
+    liking_users = db.relationship(
+        "User",
+        secondary="likes",
+        backref="liked_messages"
+    )
+
+
+class Like(db.Model):
+    """A model for likes."""
+
+    __tablename__ = 'likes'
+
+    liked_message_id = db.Column(
+        db.Integer,
+        db.ForeignKey('messages.id', ondelete='CASCADE'),
+        primary_key=True
+    )
+
+    liking_user_id = db.Column(
+        db.Integer,
+        db.ForeignKey('users.id', ondelete='CASCADE'),
+        primary_key=True
+    )
+
 
 def connect_db(app):
     """Connect this database to provided Flask app.
