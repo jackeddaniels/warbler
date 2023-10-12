@@ -56,7 +56,7 @@ def do_logout():
     """Log out user."""
 
     if CURR_USER_KEY in session:
-        del session[CURR_USER_KEY]
+        session.pop(CURR_USER_KEY)
 
 
 @app.route('/signup', methods=["GET", "POST"])
@@ -76,18 +76,24 @@ def signup():
     form = UserAddForm()
 
     if form.validate_on_submit():
-        try:
-            user = User.signup(
-                username=form.username.data,
-                password=form.password.data,
-                email=form.email.data,
-                image_url=form.image_url.data or User.image_url.default.arg,
-            )
-            db.session.commit()
+        unique_username = User.query.filter_by(username=form.username.data).one_or_none()
+        unique_email = User.query.filter_by(email=form.email.data).one_or_none()
 
-        except IntegrityError:
+        if unique_username:
             flash("Username already taken", 'danger')
-            return render_template('users/signup.html', form=form)
+        if unique_email:
+            flash("Email already taken", 'danger')
+        if unique_username or unique_email:
+            return render_template('/users/signup.html', form=form)
+
+        user = User.signup(
+            username=form.username.data,
+            password=form.password.data,
+            email=form.email.data,
+            image_url=form.image_url.data or User.image_url.default.arg,
+        )
+
+        db.session.commit()
 
         do_login(user)
 
@@ -123,6 +129,10 @@ def login():
 def logout():
     """Handle logout of user and redirect to homepage."""
 
+    if not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
+
     form = g.csrf_form
 
     if form.validate_on_submit():
@@ -157,8 +167,7 @@ def list_users():
     else:
         users = User.query.filter(User.username.like(f"%{search}%")).all()
 
-    form = g.csrf_form
-    return render_template('users/index.html', users=users, form=form)
+    return render_template('users/index.html', users=users)
 
 
 @app.get('/users/<int:user_id>')
@@ -170,9 +179,8 @@ def show_user(user_id):
         return redirect("/")
 
     user = User.query.get_or_404(user_id)
-    form = g.csrf_form
 
-    return render_template('users/show.html', user=user, form=form)
+    return render_template('users/show.html', user=user)
 
 
 @app.get('/users/<int:user_id>/following')
@@ -183,9 +191,8 @@ def show_following(user_id):
         flash("Access unauthorized.", "danger")
         return redirect("/")
 
-    form = g.csrf_form
     user = User.query.get_or_404(user_id)
-    return render_template('users/following.html', user=user, form=form)
+    return render_template('users/following.html', user=user)
 
 
 @app.get('/users/<int:user_id>/followers')
@@ -211,11 +218,17 @@ def start_following(follow_id):
         flash("Access unauthorized.", "danger")
         return redirect("/")
 
-    followed_user = User.query.get_or_404(follow_id)
-    g.user.following.append(followed_user)
-    db.session.commit()
+    form = g.csrf_form
+    if form.validate_on_submit():
+        followed_user = User.query.get_or_404(follow_id)
+        g.user.following.append(followed_user)
+        db.session.commit()
 
-    return redirect(f"/users/{g.user.id}/following")
+        return redirect(f"/users/{g.user.id}/following")
+    else:
+        raise Unauthorized()
+
+
 
 
 @app.post('/users/stop-following/<int:follow_id>')
@@ -258,21 +271,26 @@ def profile():
         # Check password
         if User.authenticate(g.user.username, form.password.data):
             # Try making edits
-            try:
-                g.user.username = form.username.data
-                g.user.email =  form.email.data
-                g.user.image_url = form.image_url.data or User.image_url.default.arg
-                g.user.header_image_url = form.header_image_url.data or User.header_image_url.default.arg
-                g.user.bio = form.bio.data
 
-                db.session.commit()
-                return redirect(f'/users/{ g.user.id }')
-            # Rollback if db doesn't like actions and notify user
-            except IntegrityError:
-                db.session.rollback()
+            unique_username = User.query.filter_by(username=form.username.data).one_or_none()
+            unique_email = User.query.filter_by(email=form.email.data).one_or_none()
+
+            if unique_username and (form.username.data != g.user.username):
                 flash("Username already taken", 'danger')
+            if unique_email and (form.email.data != g.user.email):
+                flash("Email already taken", 'danger')
+            if unique_username or unique_email:
                 return render_template('/users/edit.html', form=form)
-            # TODO: Do i change to checking before, or find a way to differentiate duplicate email and username
+
+            g.user.username = form.username.data
+            g.user.email =  form.email.data
+            g.user.image_url = form.image_url.data or User.image_url.default.arg
+            g.user.header_image_url = form.header_image_url.data or User.header_image_url.default.arg
+            g.user.bio = form.bio.data
+
+            db.session.commit()
+            return redirect(f'/users/{ g.user.id }')
+
         else:
             flash("Invalid password", "danger")
             return render_template('/users/edit.html', form=form)
@@ -380,13 +398,6 @@ def homepage():
     """
 
     if g.user:
-        # messages = (Message
-        #             .query
-        #             .order_by(Message.timestamp.desc())
-        #             .limit(100)
-        #             .all())
-
-
         following = [user.id for user in g.user.following]
         following.append(g.user.id)
         messages = (Message
@@ -398,9 +409,7 @@ def homepage():
                )
 
 
-        form = g.csrf_form
-
-        return render_template('home.html', messages=messages, form=form)
+        return render_template('home.html', messages=messages)
 
     else:
         return render_template('home-anon.html')
