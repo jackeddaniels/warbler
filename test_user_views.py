@@ -19,7 +19,7 @@ os.environ['DATABASE_URL'] = "postgresql:///warbler_test"
 
 # Now we can import app
 
-from app import app, CURR_USER_KEY, do_login, session
+from app import app, CURR_USER_KEY, do_login, session, g
 
 app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
 
@@ -132,3 +132,94 @@ class MessageAddViewTestCase(UserBaseViewTestCase):
                 self.assertNotIn( CURR_USER_KEY, session)
                 self.assertIn("<!-- Signup Template - used for testing -->", html)
 
+
+    def test_follower_logged_in(self):
+        """"""
+
+        with app.test_client() as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.u1_id
+
+            resp = c.get(f"/users/{self.u1_id}/followers")
+
+            self.assertEqual(resp.status_code, 200)
+
+            html = resp.get_data(as_text=True)
+            self.assertIn("<!-- Followers Template - used for testing -->", html)
+
+
+    def test_follower_logged_out(self):
+        """"""
+        with app.test_client() as c:
+            resp = c.get(f"/users/{self.u1_id}/followers",
+                         follow_redirects=True)
+
+            self.assertEqual(resp.status_code, 200)
+
+            html = resp.get_data(as_text=True)
+            self.assertIn("<!-- Anonymouse Home Template - used for testing  -->", html)
+
+
+    def test_following_logged_in(self):
+        """"""
+
+        with app.test_client() as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.u1_id
+
+            resp = c.get(f"/users/{self.u1_id}/following")
+
+            self.assertEqual(resp.status_code, 200)
+
+            html = resp.get_data(as_text=True)
+            self.assertIn("<!-- Following Template - used for testing -->", html)
+
+
+    def test_following_logged_out(self):
+        """"""
+
+        with app.test_client() as c:
+            resp = c.get(f"/users/{self.u1_id}/following",
+                         follow_redirects=True)
+
+            self.assertEqual(resp.status_code, 200)
+
+            html = resp.get_data(as_text=True)
+            self.assertIn("<!-- Anonymouse Home Template - used for testing  -->", html)
+
+
+    def test_add_message_logged_in(self):
+        """"""
+
+        with app.test_client() as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.u1_id
+
+            resp = c.post(f"/messages/new",
+                          data= {'text':'Test Message',
+                                'timestamp':None,
+                                'user_id': self.u1_id},
+                         follow_redirects=True)
+
+            self.assertEqual(resp.status_code, 200)
+            html = resp.get_data(as_text=True)
+            self.assertIn("<!-- User Detail Template - used for testing -->", html)
+            self.assertIn("Test Message", html)
+
+            self.assertEqual(len(g.user.messages), 1)
+
+
+    def test_add_message_logged_out(self):
+        """"""
+
+        with app.test_client() as c:
+            resp = c.post(f"/messages/new",
+                          data= {'text':'Test Message',
+                                'timestamp':None,
+                                'user_id': self.u1_id},
+                         follow_redirects=True)
+
+            self.assertEqual(resp.status_code, 200)
+
+            html = resp.get_data(as_text=True)
+            self.assertIn("<!-- Anonymouse Home Template - used for testing  -->", html)
