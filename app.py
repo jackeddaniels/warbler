@@ -380,7 +380,7 @@ def delete_message(message_id):
         return redirect("/")
 
     form = g.csrf_form
-    #TODO: think about guard statement logic consistency
+
     if form.validate_on_submit():
         msg = Message.query.get_or_404(message_id)
         db.session.delete(msg)
@@ -421,12 +421,12 @@ def like_message(message_id):
         raise Unauthorized()
 
     message = Message.query.get_or_404(message_id)
-    user_location = request.referrer
-    #TODO: change request.referrer to utilize a key with form URL path (add input field that's hidden, then grab with request.form method)
+    redirect_url = request.form["redirect"]
+
     g.user.liked_messages.append(message)
     db.session.commit()
 
-    return redirect(f'{user_location}')
+    return redirect(f"{redirect_url}")
 
 
 @app.post('/messages/<int:message_id>/unlike')
@@ -443,12 +443,12 @@ def unlike_message(message_id):
         raise Unauthorized()
 
     message = Message.query.get_or_404(message_id)
-    user_location = request.referrer
+    redirect_url = request.form["redirect"]
 
     g.user.liked_messages.remove(message)
     db.session.commit()
 
-    return redirect(f'{user_location}')
+    return redirect(f"{redirect_url}")
 
 
 ##############################################################################

@@ -23,10 +23,11 @@
         <p>{{ message.text }}</p>
       </div>
       {% if g.user.id != message.user.id %}
-      {% if message.id in g.user.liked_messages|map(attribute='id') %}
+      {% if message in g.user.liked_messages %}
         <form method="POST"
               action="/messages/{{ message.id }}/unlike">
           {{ g.csrf_form.hidden_tag() }}
+          <input type="hidden" name="redirect" value="/users/{{ user.id }}">
           <button class="bg-transparent border-0" type="submit">
             <i class="bi bi-star-fill messages-like"></i>
           </button>
@@ -35,6 +36,7 @@
         <form method="POST"
                 action="/messages/{{ message.id }}/like">
                 {{ g.csrf_form.hidden_tag() }}
+          <input type="hidden" name="redirect" value="/users/{{ user.id }}">
           <button class="bg-transparent border-0" type="submit">
             <i class="bi bi-star messages-like"></i>
           </button>

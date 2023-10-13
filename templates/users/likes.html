@@ -14,7 +14,7 @@
              class="timeline-image">
       </a>
       {% if g.user.id != message.user.id %}
-        {% if message.id in g.user.liked_messages|map(attribute='id') %}
+        {% if message in g.user.liked_messages %}
           <form method="POST"
             action="/messages/{{ message.id }}/unlike">
             {{ g.csrf_form.hidden_tag() }}

@@ -59,17 +59,18 @@
                 <img src="{{ msg.user.image_url }}" alt="" class="timeline-image">
               </a>
               {% if g.user.id != msg.user.id %}
-              <!-- TODO: simplify 63, just check if msg in g.user.liked_messages -->
-              {% if msg.id in g.user.liked_messages|map(attribute='id') %}
+              {% if msg in g.user.liked_messages %}
                 <form method="POST" action="/messages/{{ msg.id }}/unlike">
-                      {{ g.csrf_form.hidden_tag() }}
-                      <button class="bg-transparent border-0" type="submit">
-                        <i class="bi bi-star-fill messages-like"></i>
-                      </button>
+                  {{ g.csrf_form.hidden_tag() }}
+                  <input type="hidden" name="redirect" value="/">
+                  <button class="bg-transparent border-0" type="submit">
+                    <i class="bi bi-star-fill messages-like"></i>
+                  </button>
                 </form>
               {% else %}
                 <form method="POST" action="/messages/{{ msg.id }}/like">
                   {{ g.csrf_form.hidden_tag() }}
+                  <input type="hidden" name="redirect" value="/">
                   <button class="bg-transparent border-0" type="submit">
                     <i class="bi bi-star messages-like"></i>
                   </button>
