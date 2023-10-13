@@ -518,7 +518,7 @@ p.card-bio {
   position: absolute;
   top: 4px;
   right: 4px;
-  z-index: 1;
+  z-index: 2;
 }
 
 .messages-like-bottom {
@@ -534,6 +534,8 @@ p.card-bio {
   letter-spacing: 0.01em;
   margin-bottom: 10px;
 }
+
+
 
 /* ================================ 404 page */
 

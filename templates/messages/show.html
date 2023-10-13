@@ -34,23 +34,6 @@
               <button class="btn btn-primary">Unfollow</button>
             </form>
             {% else %}
-            {% if message.id in g.user.liked_messages|map(attribute='id') %}
-              <form method="POST"
-                    action="/messages/{{ message.id }}/unlike">
-                    {{ g.csrf_form.hidden_tag() }}
-                <button class="btn btn-outline-primary btn-sm">
-                  Unlike
-                </button>
-              </form>
-            {% else %}
-              <form method="POST"
-                      action="/messages/{{ message.id }}/like">
-                      {{ g.csrf_form.hidden_tag() }}
-                  <button class="btn btn-outline-primary btn-sm">
-                    Like
-                  </button>
-                </form>
-            {% endif %}
             <form method="POST"
                   action="/users/follow/{{ message.user.id }}">
                   {{ g.csrf_form.hidden_tag() }}
@@ -58,6 +41,25 @@
                 Follow
               </button>
             </form>
+            {% endif %}
+            {% if g.user.id != message.user.id %}
+            {% if message.id in g.user.liked_messages|map(attribute='id') %}
+              <form method="POST"
+                    action="/messages/{{ message.id }}/unlike">
+                {{ g.csrf_form.hidden_tag() }}
+                <button class="bg-transparent border-0" type="submit">
+                  <i class="bi bi-star-fill message-like"></i>
+                </button>
+              </form>
+            {% else %}
+              <form method="POST"
+                      action="/messages/{{ message.id }}/like">
+                      {{ g.csrf_form.hidden_tag() }}
+                <button class="bg-transparent border-0" type="submit">
+                  <i class="bi bi-star message-like"></i>
+                </button>
+              </form>
+            {% endif %}
             {% endif %}
             {% endif %}
           </div>

@@ -13,7 +13,17 @@
              alt="user image"
              class="timeline-image">
       </a>
-
+      {% if g.user.id != message.user.id %}
+        {% if message.id in g.user.liked_messages|map(attribute='id') %}
+          <form method="POST"
+            action="/messages/{{ message.id }}/unlike">
+            {{ g.csrf_form.hidden_tag() }}
+            <button class="bg-transparent border-0" type="submit">
+              <i class="bi bi-star-fill messages-like"></i>
+            </button>
+          </form>
+        {% endif %}
+      {% endif %}
       <div class="message-area">
         <a href="/users/{{ message.user.id }}">@{{ message.user.username }}</a>
         <span class="text-muted">

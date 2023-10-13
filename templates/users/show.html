@@ -6,6 +6,7 @@
     {% for message in user.messages %}
 
     <li class="list-group-item">
+
       <a href="/messages/{{ message.id }}" class="message-link"></a>
 
       <a href="/users/{{ user.id }}">
@@ -21,6 +22,25 @@
             </span>
         <p>{{ message.text }}</p>
       </div>
+      {% if g.user.id != message.user.id %}
+      {% if message.id in g.user.liked_messages|map(attribute='id') %}
+        <form method="POST"
+              action="/messages/{{ message.id }}/unlike">
+          {{ g.csrf_form.hidden_tag() }}
+          <button class="bg-transparent border-0" type="submit">
+            <i class="bi bi-star-fill messages-like"></i>
+          </button>
+        </form>
+      {% else %}
+        <form method="POST"
+                action="/messages/{{ message.id }}/like">
+                {{ g.csrf_form.hidden_tag() }}
+          <button class="bg-transparent border-0" type="submit">
+            <i class="bi bi-star messages-like"></i>
+          </button>
+        </form>
+      {% endif %}
+      {% endif %}
     </li>
 
     {% endfor %}

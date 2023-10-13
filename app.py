@@ -365,6 +365,7 @@ def show_message(message_id):
         return redirect("/")
 
     msg = Message.query.get_or_404(message_id)
+
     return render_template('messages/show.html', message=msg)
 
 
@@ -410,7 +411,7 @@ def show_liked_messages(user_id):
 
 @app.post('/messages/<int:message_id>/like')
 def like_message(message_id):
-    """Like a message. Redirect to message on success"""
+    """Like a message. Redirect to page request originated from on success"""
 
     if not g.user:
         flash("Access unauthorized.", "danger")
@@ -422,16 +423,17 @@ def like_message(message_id):
         raise Unauthorized()
 
     message = Message.query.get_or_404(message_id)
+    user_location = request.referrer
 
     g.user.liked_messages.append(message)
     db.session.commit()
 
-    return redirect(f'/messages/{message_id}')
+    return redirect(f'{user_location}')
 
 
 @app.post('/messages/<int:message_id>/unlike')
 def unlike_message(message_id):
-    """Like a message. Redirect to message on success"""
+    """Unlike a message. Redirect to page request originated from on success"""
 
     if not g.user:
         flash("Access unauthorized.", "danger")
@@ -443,11 +445,12 @@ def unlike_message(message_id):
         raise Unauthorized()
 
     message = Message.query.get_or_404(message_id)
+    user_location = request.referrer
 
     g.user.liked_messages.remove(message)
     db.session.commit()
 
-    return redirect(f'/messages/{message_id}')
+    return redirect(f'{user_location}')
 
 
 ##############################################################################

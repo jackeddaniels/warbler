@@ -58,6 +58,23 @@
               <a href="/users/{{ msg.user.id }}">
                 <img src="{{ msg.user.image_url }}" alt="" class="timeline-image">
               </a>
+              {% if g.user.id != msg.user.id %}
+              {% if msg.id in g.user.liked_messages|map(attribute='id') %}
+                <form method="POST" action="/messages/{{ msg.id }}/unlike">
+                      {{ g.csrf_form.hidden_tag() }}
+                      <button class="bg-transparent border-0" type="submit">
+                        <i class="bi bi-star-fill messages-like"></i>
+                      </button>
+                </form>
+              {% else %}
+                <form method="POST" action="/messages/{{ msg.id }}/like">
+                  {{ g.csrf_form.hidden_tag() }}
+                  <button class="bg-transparent border-0" type="submit">
+                    <i class="bi bi-star messages-like"></i>
+                  </button>
+                </form>
+              {% endif %}
+              {% endif %}
               <div class="message-area">
                 <a href="/users/{{ msg.user.id }}">@{{ msg.user.username }}</a>
                 <span class="text-muted">{{ msg.timestamp.strftime('%d %B %Y') }}</span>
