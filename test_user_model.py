@@ -57,7 +57,6 @@ class UserModelTestCase(TestCase):
         self.assertEqual(len(u1.followers), 0)
 
 
-# Does is_following successfully detect when user1 is following user2?
     def test_is_following_valid(self):
         """Test if is_following can detect if u1 follows u2"""
 
@@ -69,7 +68,7 @@ class UserModelTestCase(TestCase):
 
         self.assertEqual(user1.is_following(user2), True)
 
-# Does is_following successfully detect when user1 is not following user2?
+
     def test_is_following_invalid(self):
         """Test if is_following can detect if u1 isn't following u2"""
 
@@ -79,7 +78,6 @@ class UserModelTestCase(TestCase):
         self.assertEqual(user1.is_following(user2), False)
 
 
-# Does is_followed_by successfully detect when user1 is followed by user2?
     def test_is_followed_by_valid(self):
         """Test if is_followed_by can detect if u1 is followed by u2"""
 
@@ -91,7 +89,7 @@ class UserModelTestCase(TestCase):
 
         self.assertEqual(user1.is_followed_by(user2), True)
 
-# Does is_followed_by successfully detect when user1 is not followed by user2?
+
     def test_is_followed_by_invalid(self):
         """Test if is_followed_by can detect if u1 is not followed by u2"""
 
@@ -100,7 +98,7 @@ class UserModelTestCase(TestCase):
 
         self.assertEqual(user1.is_followed_by(user2), False)
 
-# Does User.signup successfully create a new user given valid credentials?
+
     def test_signup_valid(self):
         """Test if signup successfully creates a new user with valid credentials"""
 
@@ -121,13 +119,13 @@ class UserModelTestCase(TestCase):
         self.assertEqual(test_user_profile.image_url, DEFAULT_IMAGE_URL)
         self.assertNotEqual(test_user_profile.password, 'password')
 
-# Does User.signup fail to create a new user if any of the validations (eg uniqueness, non-nullable fields) fail?
-    def test_signup_invalid(self):
-        """Test if signup rejects invalid user credentials"""
+
+    def test_signup_invalid_unique(self):
+        """Test if signup rejects duplicate usernames"""
 
         with self.assertRaises(IntegrityError):
 
-            test_user = User.signup(
+            User.signup(
                 username='u1',
                 email='test@gmail.com',
                 password='password',
@@ -135,7 +133,42 @@ class UserModelTestCase(TestCase):
 
             db.session.commit()
 
-# Does User.authenticate successfully return a user when given a valid username and password?
 
-# Does User.authenticate fail to return a user when the username is invalid?
-# Does User.authenticate fail to return a user when the password is invalid?
+    def test_signup_invalid_null(self):
+        """Test if signup rejects null input for non-nullable fields"""
+
+        with self.assertRaises(ValueError):
+
+            User.signup(
+                username='Test',
+                email='test@gmail.com',
+                password='',
+                image_url=None)
+
+            db.session.commit()
+
+
+    def test_authenticate_valid(self):
+        """Test if authenticate is successful on valid username and password"""
+
+        user = User.query.get(self.u1_id)
+
+        auth = User.authenticate(user.username, 'password')
+
+        self.assertEqual(auth, user)
+
+
+    def test_authenticate_invalid_username(self):
+            """Test if authenticate fails when invalid username"""
+
+            auth = User.authenticate('12345', 'password')
+
+            self.assertEqual(auth, False)
+
+
+    def test_authenticate_invalid_password(self):
+            """Test if authenticate fails when invalid password"""
+
+            auth = User.authenticate('u1', 'fake')
+
+            self.assertEqual(auth, False)
