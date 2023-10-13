@@ -59,6 +59,7 @@
                 <img src="{{ msg.user.image_url }}" alt="" class="timeline-image">
               </a>
               {% if g.user.id != msg.user.id %}
+              <!-- TODO: simplify 63, just check if msg in g.user.liked_messages -->
               {% if msg.id in g.user.liked_messages|map(attribute='id') %}
                 <form method="POST" action="/messages/{{ msg.id }}/unlike">
                       {{ g.csrf_form.hidden_tag() }}

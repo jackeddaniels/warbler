@@ -211,7 +211,7 @@ def show_followers(user_id):
 def start_following(follow_id):
     """Add a follow for the currently-logged-in user.
 
-    Redirect to following page for the current for the current user.
+    Redirect to following page for the current user.
     """
 
     if not g.user:
@@ -229,13 +229,11 @@ def start_following(follow_id):
         raise Unauthorized()
 
 
-
-
 @app.post('/users/stop-following/<int:follow_id>')
 def stop_following(follow_id):
     """Have currently-logged-in-user stop following this user.
 
-    Redirect to following page for the current for the current user.
+    Redirect to following page for the current user.
     """
 
     if not g.user:
@@ -382,7 +380,7 @@ def delete_message(message_id):
         return redirect("/")
 
     form = g.csrf_form
-
+    #TODO: think about guard statement logic consistency
     if form.validate_on_submit():
         msg = Message.query.get_or_404(message_id)
         db.session.delete(msg)
@@ -424,7 +422,7 @@ def like_message(message_id):
 
     message = Message.query.get_or_404(message_id)
     user_location = request.referrer
-
+    #TODO: change request.referrer to utilize a key with form URL path (add input field that's hidden, then grab with request.form method)
     g.user.liked_messages.append(message)
     db.session.commit()
 
