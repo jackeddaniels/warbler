@@ -114,21 +114,21 @@ class MessageAddViewTestCase(UserBaseViewTestCase):
         """"""
 
         with app.test_client() as c:
-            user = User.query.get(self.u1_id)
-            do_login(user)
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.u1_id
 
-            resp = c.post(
-                "/signup",
-                data={
-                    'username':'',
-                    'password':'123456',
-                    'email':'u2@email.com',
-                    'image_url':""
-                })
+                resp = c.post(
+                    "/signup",
+                    data={
+                        'username':'',
+                        'password':'123456',
+                        'email':'u2@email.com',
+                        'image_url':""
+                    })
 
-            self.assertEqual(resp.status_code, 200)
+                self.assertEqual(resp.status_code, 200)
 
-            html = resp.get_data(as_text=True)
-            self.assertNotIn( CURR_USER_KEY, session)
-            self.assertIn("<!-- Signup Template - used for testing -->", html)
+                html = resp.get_data(as_text=True)
+                self.assertNotIn( CURR_USER_KEY, session)
+                self.assertIn("<!-- Signup Template - used for testing -->", html)
 
