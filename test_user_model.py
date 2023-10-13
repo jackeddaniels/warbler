@@ -7,6 +7,7 @@
 
 import os
 from unittest import TestCase
+from sqlalchemy.exc import IntegrityError
 
 from models import db, User, Message, Follow, DEFAULT_IMAGE_URL, DEFAULT_HEADER_IMAGE_URL
 
@@ -79,8 +80,8 @@ class UserModelTestCase(TestCase):
 
 
 # Does is_followed_by successfully detect when user1 is followed by user2?
-    def test_is_followed_by(self):
-        """Test if is_followed can detect if u1 is followed by u2"""
+    def test_is_followed_by_valid(self):
+        """Test if is_followed_by can detect if u1 is followed by u2"""
 
         user1 = User.query.get(self.u1_id)
         user2 = User.query.get(self.u2_id)
@@ -91,8 +92,50 @@ class UserModelTestCase(TestCase):
         self.assertEqual(user1.is_followed_by(user2), True)
 
 # Does is_followed_by successfully detect when user1 is not followed by user2?
+    def test_is_followed_by_invalid(self):
+        """Test if is_followed_by can detect if u1 is not followed by u2"""
+
+        user1 = User.query.get(self.u1_id)
+        user2 = User.query.get(self.u2_id)
+
+        self.assertEqual(user1.is_followed_by(user2), False)
+
 # Does User.signup successfully create a new user given valid credentials?
+    def test_signup_valid(self):
+        """Test if signup successfully creates a new user with valid credentials"""
+
+        test_user = User.signup(
+            username='Test',
+            email='test@gmail.com',
+            password='password',
+            image_url=None)
+
+        db.session.commit()
+
+        test_u_id = test_user.id
+
+        test_user_profile = User.query.get(test_u_id)
+
+        self.assertEqual(test_user_profile.username, 'Test')
+        self.assertEqual(test_user_profile.email, 'test@gmail.com')
+        self.assertEqual(test_user_profile.image_url, DEFAULT_IMAGE_URL)
+        self.assertNotEqual(test_user_profile.password, 'password')
+
 # Does User.signup fail to create a new user if any of the validations (eg uniqueness, non-nullable fields) fail?
+    def test_signup_invalid(self):
+        """Test if signup rejects invalid user credentials"""
+
+        with self.assertRaises(IntegrityError):
+
+            test_user = User.signup(
+                username='u1',
+                email='test@gmail.com',
+                password='password',
+                image_url=None)
+
+            db.session.commit()
+
 # Does User.authenticate successfully return a user when given a valid username and password?
+
 # Does User.authenticate fail to return a user when the username is invalid?
 # Does User.authenticate fail to return a user when the password is invalid?
